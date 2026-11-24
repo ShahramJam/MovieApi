@@ -96,20 +96,17 @@ public class MoviesController : ControllerBase
     {
         var movie = await _context.Movies
             .AsNoTracking()
-            .Include(item => item.Genres)
-            .Include(item => item.MovieDetails)
-            .Include(item => item.Reviews)
-            .Include(item => item.MovieActors)
-                .ThenInclude(movieActor => movieActor.Actor)
+            .Where(item => item.Id == id)
             .AsSplitQuery()
-            .FirstOrDefaultAsync(item => item.Id == id);
+            .SelectDetailDto()
+            .FirstOrDefaultAsync();
 
         if (movie is null)
         {
             return NotFound();
         }
 
-        return movie.ToDetailDto();
+        return movie;
     }
 
     [HttpPost]
