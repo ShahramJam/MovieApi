@@ -1,7 +1,7 @@
-using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using MovieApi.Models;
+using System.Collections.Generic;
 
 namespace MovieApi.Data.Configurations;
 

@@ -1,4 +1,3 @@
-using MovieApi.DTOs;
 using MovieApi.Models;
 
 namespace MovieApi.DTOs.Mappings;
@@ -15,7 +14,7 @@ public static class ActorMappings
         };
     }
 
-    public static Actor ToEntity(this ActorDto actorDto)
+    public static Actor ToEntity(this ActorCreateDto actorDto)
     {
         return new Actor
         {
@@ -24,7 +23,7 @@ public static class ActorMappings
         };
     }
 
-    public static void UpdateEntity(this ActorDto actorDto, Actor actor)
+    public static void UpdateEntity(this ActorUpdateDto actorDto, Actor actor)
     {
         actor.Name = actorDto.Name;
         actor.BirthYear = actorDto.BirthYear;

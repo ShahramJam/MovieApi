@@ -1,7 +1,6 @@
+using MovieApi.Models;
 using System.Collections.Generic;
 using System.Linq;
-using MovieApi.DTOs;
-using MovieApi.Models;
 
 namespace MovieApi.DTOs.Mappings;
 
