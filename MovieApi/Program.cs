@@ -1,7 +1,10 @@
 
 using Microsoft.AspNetCore.Builder;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using MovieApi.Data;
 using Scalar.AspNetCore;
 
 namespace MovieApi
@@ -15,7 +18,9 @@ namespace MovieApi
             // Add services to the container.
 
             builder.Services.AddControllers();
-            // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+            builder.Services.AddDbContext<MovieDbContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("MovieDb")));
+
             builder.Services.AddOpenApi();
 
             var app = builder.Build();
