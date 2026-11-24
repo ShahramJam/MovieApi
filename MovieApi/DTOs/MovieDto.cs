@@ -9,4 +9,5 @@ public class MovieDto
     public int Year { get; set; }
     public int Duration { get; set; }
     public List<string> Genres { get; set; } = new();
+    public List<ActorDto> Actors { get; set; } = new();
 }
