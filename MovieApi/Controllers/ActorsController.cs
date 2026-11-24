@@ -1,11 +1,11 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MovieApi.Data;
 using MovieApi.DTOs;
 using MovieApi.DTOs.Mappings;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace MovieApi.Controllers;
 
@@ -42,7 +42,7 @@ public class ActorsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<ActorDto>> CreateActor(ActorDto actorDto)
+    public async Task<ActionResult<ActorDto>> CreateActor(ActorCreateDto actorDto)
     {
         var actor = actorDto.ToEntity();
 
@@ -53,13 +53,8 @@ public class ActorsController : ControllerBase
     }
 
     [HttpPut("{id:int}")]
-    public async Task<IActionResult> UpdateActor(int id, ActorDto actorDto)
+    public async Task<IActionResult> UpdateActor(int id, ActorUpdateDto actorDto)
     {
-        if (id != actorDto.Id)
-        {
-            return BadRequest();
-        }
-
         var actor = await _context.Actors.FindAsync(id);
         if (actor is null)
         {

@@ -1,4 +1,3 @@
-using MovieApi.DTOs;
 using MovieApi.Models;
 
 namespace MovieApi.DTOs.Mappings;
