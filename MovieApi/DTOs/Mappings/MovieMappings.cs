@@ -25,25 +25,46 @@ public static class MovieMappings
         };
     }
 
-    public static MovieDetailDto ToDetailDto(this Movie movie)
+    public static IQueryable<MovieDetailDto> SelectDetailDto(this IQueryable<Movie> movies)
     {
-        return new MovieDetailDto
+        return movies.Select(movie => new MovieDetailDto
         {
             Id = movie.Id,
             Title = movie.Title,
             Year = movie.Year,
             Duration = movie.Duration,
-            Genres = movie.Genres.Select(genre => genre.Name).OrderBy(name => name).ToList(),
-            MovieDetails = movie.MovieDetails?.ToDto(),
+            Genres = movie.Genres
+                .Select(genre => genre.Name)
+                .OrderBy(name => name)
+                .ToList(),
+            MovieDetails = movie.MovieDetails == null ? null : new MovieDetailsDto
+            {
+                Id = movie.MovieDetails.Id,
+                Synopsis = movie.MovieDetails.Synopsis,
+                Language = movie.MovieDetails.Language,
+                Budget = movie.MovieDetails.Budget
+            },
             Reviews = movie.Reviews
                 .OrderBy(review => review.Id)
-                .Select(review => review.ToDto())
+                .Select(review => new ReviewDto
+                {
+                    Id = review.Id,
+                    ReviewerName = review.ReviewerName,
+                    Comment = review.Comment,
+                    Rating = review.Rating
+                })
                 .ToList(),
             Actors = movie.MovieActors
                 .OrderBy(movieActor => movieActor.Actor.Name)
-                .Select(movieActor => movieActor.ToDto())
+                .Select(movieActor => new ActorDto
+                {
+                    Id = movieActor.Actor.Id,
+                    Name = movieActor.Actor.Name,
+                    BirthYear = movieActor.Actor.BirthYear,
+                    Role = movieActor.Role
+                })
                 .ToList()
-        };
+        });
     }
 
     public static Movie ToEntity(
