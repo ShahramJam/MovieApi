@@ -269,7 +269,6 @@ Returns reviews for a movie ordered by review ID.
     "rating": 5
   }
 ]
-
 ```
 
 ### `POST /api/movies/{movieId}/reviews`
