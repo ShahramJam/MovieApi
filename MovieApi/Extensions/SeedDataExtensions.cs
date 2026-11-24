@@ -27,6 +27,11 @@ public static class SeedDataExtensions
         var drama = new Genre { Name = "Drama" };
         var scienceFiction = new Genre { Name = "Science Fiction" };
 
+        var frankDarabont = GetOrAddDirector(dbContext, "Frank Darabont");
+        var lanaWachowski = GetOrAddDirector(dbContext, "Lana Wachowski");
+        var christopherNolan = GetOrAddDirector(dbContext, "Christopher Nolan");
+        var unitedStates = GetOrAddCountry(dbContext, "United States");
+
         var timRobbins = new Actor { Name = "Tim Robbins", BirthYear = 1958 };
         var morganFreeman = new Actor { Name = "Morgan Freeman", BirthYear = 1937 };
         var keanuReeves = new Actor { Name = "Keanu Reeves", BirthYear = 1964 };
@@ -41,6 +46,8 @@ public static class SeedDataExtensions
                 Title = "The Shawshank Redemption",
                 Year = 1994,
                 Duration = 142,
+                Director = frankDarabont,
+                Country = unitedStates,
                 Genres = new List<Genre> { crime, drama },
                 MovieActors = new List<MovieActor>
                 {
@@ -74,6 +81,8 @@ public static class SeedDataExtensions
                 Title = "The Matrix",
                 Year = 1999,
                 Duration = 136,
+                Director = lanaWachowski,
+                Country = unitedStates,
                 Genres = new List<Genre> { action, scienceFiction },
                 MovieActors = new List<MovieActor>
                 {
@@ -101,6 +110,8 @@ public static class SeedDataExtensions
                 Title = "The Dark Knight",
                 Year = 2008,
                 Duration = 152,
+                Director = christopherNolan,
+                Country = unitedStates,
                 Genres = new List<Genre> { action, crime, drama },
                 MovieActors = new List<MovieActor>
                 {
@@ -134,5 +145,31 @@ public static class SeedDataExtensions
 
         dbContext.Movies.AddRange(movies);
         dbContext.SaveChanges();
+    }
+
+    private static Director GetOrAddDirector(MovieDbContext dbContext, string name)
+    {
+        var director = dbContext.Directors.SingleOrDefault(item => item.Name == name);
+        if (director is not null)
+        {
+            return director;
+        }
+
+        director = new Director { Name = name };
+        dbContext.Directors.Add(director);
+        return director;
+    }
+
+    private static Country GetOrAddCountry(MovieDbContext dbContext, string name)
+    {
+        var country = dbContext.Countries.SingleOrDefault(item => item.Name == name);
+        if (country is not null)
+        {
+            return country;
+        }
+
+        country = new Country { Name = name };
+        dbContext.Countries.Add(country);
+        return country;
     }
 }

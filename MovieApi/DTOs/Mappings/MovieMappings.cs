@@ -14,6 +14,10 @@ public static class MovieMappings
             Title = movie.Title,
             Year = movie.Year,
             Duration = movie.Duration,
+            DirectorId = movie.DirectorId,
+            DirectorName = movie.Director.Name,
+            CountryId = movie.CountryId,
+            CountryName = movie.Country.Name,
             Genres = movie.Genres.Select(genre => genre.Name).OrderBy(name => name).ToList(),
             Actors = includeActors
                 ? movie.MovieActors
@@ -32,6 +36,10 @@ public static class MovieMappings
             Title = movie.Title,
             Year = movie.Year,
             Duration = movie.Duration,
+            DirectorId = movie.DirectorId,
+            DirectorName = movie.Director.Name,
+            CountryId = movie.CountryId,
+            CountryName = movie.Country.Name,
             Genres = movie.Genres
                 .Select(genre => genre.Name)
                 .OrderBy(name => name)
@@ -68,6 +76,8 @@ public static class MovieMappings
 
     public static Movie ToEntity(
         this MovieCreateDto movieDto,
+        Director director,
+        Country country,
         IEnumerable<Genre> genres,
         IEnumerable<Actor> actors)
     {
@@ -76,6 +86,10 @@ public static class MovieMappings
             Title = movieDto.Title,
             Year = movieDto.Year,
             Duration = movieDto.Duration,
+            DirectorId = director.Id,
+            Director = director,
+            CountryId = country.Id,
+            Country = country,
             Genres = genres.ToList(),
             MovieActors = actors.Select(actor => actor.ToMovieActor()).ToList()
         };
@@ -84,12 +98,18 @@ public static class MovieMappings
     public static void UpdateEntity(
         this MovieUpdateDto movieDto,
         Movie movie,
+        Director director,
+        Country country,
         IEnumerable<Genre> genres,
         IEnumerable<Actor> actors)
     {
         movie.Title = movieDto.Title;
         movie.Year = movieDto.Year;
         movie.Duration = movieDto.Duration;
+        movie.DirectorId = director.Id;
+        movie.Director = director;
+        movie.CountryId = country.Id;
+        movie.Country = country;
         movie.Genres.Clear();
 
         foreach (var genre in genres)

@@ -40,6 +40,20 @@ public static class MovieActorMappings
         };
     }
 
+    public static MovieActor ToEntity(
+        this MovieActorRoleDto movieActorDto,
+        int movieId,
+        Actor actor)
+    {
+        return new MovieActor
+        {
+            MovieId = movieId,
+            ActorId = actor.Id,
+            Actor = actor,
+            Role = movieActorDto.Role
+        };
+    }
+
     public static void SyncActors(this Movie movie, IEnumerable<Actor> actors)
     {
         var requestedActorIds = actors.Select(actor => actor.Id).ToHashSet();

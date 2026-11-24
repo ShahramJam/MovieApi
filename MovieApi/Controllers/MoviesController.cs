@@ -4,6 +4,7 @@ using MovieApi.Data;
 using MovieApi.DTOs;
 using MovieApi.DTOs.Mappings;
 using MovieApi.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -30,6 +31,8 @@ public class MoviesController : ControllerBase
     {
         var query = _context.Movies
             .AsNoTracking()
+            .Include(movie => movie.Director)
+            .Include(movie => movie.Country)
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(genre))
@@ -70,6 +73,8 @@ public class MoviesController : ControllerBase
     {
         var query = _context.Movies
             .AsNoTracking()
+            .Include(movie => movie.Director)
+            .Include(movie => movie.Country)
             .Include(movie => movie.Genres)
             .AsQueryable();
 
@@ -112,6 +117,18 @@ public class MoviesController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<MovieDto>> CreateMovie(MovieCreateDto movieDto)
     {
+        var director = await FindDirectorAsync(movieDto.DirectorId);
+        if (director is null)
+        {
+            return BadRequest(new { message = "The director ID does not exist." });
+        }
+
+        var country = await FindCountryAsync(movieDto.CountryId);
+        if (country is null)
+        {
+            return BadRequest(new { message = "The country ID does not exist." });
+        }
+
         var genres = await FindGenresAsync(movieDto.GenreIds);
         if (genres is null)
         {
@@ -124,7 +141,7 @@ public class MoviesController : ControllerBase
             return BadRequest(new { message = "One or more actor IDs do not exist." });
         }
 
-        var movie = movieDto.ToEntity(genres, actors);
+        var movie = movieDto.ToEntity(director, country, genres, actors);
 
         _context.Movies.Add(movie);
         await _context.SaveChangesAsync();
@@ -148,6 +165,18 @@ public class MoviesController : ControllerBase
             return NotFound();
         }
 
+        var director = await FindDirectorAsync(movieDto.DirectorId);
+        if (director is null)
+        {
+            return BadRequest(new { message = "The director ID does not exist." });
+        }
+
+        var country = await FindCountryAsync(movieDto.CountryId);
+        if (country is null)
+        {
+            return BadRequest(new { message = "The country ID does not exist." });
+        }
+
         var genres = await FindGenresAsync(movieDto.GenreIds);
         if (genres is null)
         {
@@ -160,7 +189,7 @@ public class MoviesController : ControllerBase
             return BadRequest(new { message = "One or more actor IDs do not exist." });
         }
 
-        movieDto.UpdateEntity(movie, genres, actors);
+        movieDto.UpdateEntity(movie, director, country, genres, actors);
 
         await _context.SaveChangesAsync();
         return NoContent();
@@ -180,11 +209,31 @@ public class MoviesController : ControllerBase
         return NoContent();
     }
 
+    [HttpPost("{movieId:int}/actors")]
+    public async Task<IActionResult> AddActorToMovie(int movieId, MovieActorCreateDto movieActorDto)
+    {
+        return await AddActorToMovieAsync(
+            movieId,
+            movieActorDto.ActorId,
+            actor => movieActorDto.ToEntity(movieId, actor));
+    }
+
     [HttpPost("{movieId:int}/actors/{actorId:int}")]
     public async Task<IActionResult> AddActorToMovie(
         int movieId,
         int actorId,
-        MovieActorCreateDto movieActorDto)
+        MovieActorRoleDto movieActorDto)
+    {
+        return await AddActorToMovieAsync(
+            movieId,
+            actorId,
+            actor => movieActorDto.ToEntity(movieId, actor));
+    }
+
+    private async Task<IActionResult> AddActorToMovieAsync(
+        int movieId,
+        int actorId,
+        Func<Actor, MovieActor> createMovieActor)
     {
         var movieExists = await _context.Movies.AnyAsync(movie => movie.Id == movieId);
         var actor = await _context.Actors.FindAsync(actorId);
@@ -200,7 +249,7 @@ public class MoviesController : ControllerBase
             return Conflict(new { message = "This actor is already associated with the movie." });
         }
 
-        var movieActor = movieActorDto.ToEntity(movieId, actor);
+        var movieActor = createMovieActor(actor);
         _context.MovieActors.Add(movieActor);
         await _context.SaveChangesAsync();
 
@@ -218,6 +267,16 @@ public class MoviesController : ControllerBase
             .ToListAsync();
 
         return genres.Count == uniqueIds.Length ? genres : null;
+    }
+
+    private Task<Director?> FindDirectorAsync(int id)
+    {
+        return _context.Directors.FirstOrDefaultAsync(director => director.Id == id);
+    }
+
+    private Task<Country?> FindCountryAsync(int id)
+    {
+        return _context.Countries.FirstOrDefaultAsync(country => country.Id == id);
     }
 
     private async Task<List<Actor>?> FindActorsAsync(IEnumerable<int> ids)
