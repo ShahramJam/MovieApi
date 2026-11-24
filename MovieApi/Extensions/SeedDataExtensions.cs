@@ -42,7 +42,11 @@ public static class SeedDataExtensions
                 Year = 1994,
                 Duration = 142,
                 Genres = new List<Genre> { crime, drama },
-                Actors = new List<Actor> { timRobbins, morganFreeman },
+                MovieActors = new List<MovieActor>
+                {
+                    new() { Actor = timRobbins, Role = "Andy Dufresne" },
+                    new() { Actor = morganFreeman, Role = "Ellis Boyd \"Red\" Redding" }
+                },
                 MovieDetails = new MovieDetails
                 {
                     Synopsis = "A long sentence tests the resilience and friendship of two inmates.",
@@ -71,7 +75,11 @@ public static class SeedDataExtensions
                 Year = 1999,
                 Duration = 136,
                 Genres = new List<Genre> { action, scienceFiction },
-                Actors = new List<Actor> { keanuReeves, laurenceFishburne },
+                MovieActors = new List<MovieActor>
+                {
+                    new() { Actor = keanuReeves, Role = "Neo" },
+                    new() { Actor = laurenceFishburne, Role = "Morpheus" }
+                },
                 MovieDetails = new MovieDetails
                 {
                     Synopsis = "A programmer questions reality and joins a struggle for human freedom.",
@@ -94,7 +102,12 @@ public static class SeedDataExtensions
                 Year = 2008,
                 Duration = 152,
                 Genres = new List<Genre> { action, crime, drama },
-                Actors = new List<Actor> { christianBale, heathLedger, morganFreeman },
+                MovieActors = new List<MovieActor>
+                {
+                    new() { Actor = christianBale, Role = "Bruce Wayne / Batman" },
+                    new() { Actor = heathLedger, Role = "Joker" },
+                    new() { Actor = morganFreeman, Role = "Lucius Fox" }
+                },
                 MovieDetails = new MovieDetails
                 {
                     Synopsis = "A masked hero faces a criminal threat that challenges the city's trust.",

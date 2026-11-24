@@ -15,6 +15,7 @@ public class MovieDbContext : DbContext
     public DbSet<Review> Reviews => Set<Review>();
     public DbSet<Actor> Actors => Set<Actor>();
     public DbSet<Genre> Genres => Set<Genre>();
+    public DbSet<MovieActor> MovieActors => Set<MovieActor>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
