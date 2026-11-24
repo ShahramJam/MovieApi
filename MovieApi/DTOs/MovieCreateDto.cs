@@ -15,6 +15,12 @@ public class MovieCreateDto
     [Range(1, 1000)]
     public int Duration { get; set; }
 
+    [Range(1, int.MaxValue)]
+    public int DirectorId { get; set; }
+
+    [Range(1, int.MaxValue)]
+    public int CountryId { get; set; }
+
     [Required]
     [MinLength(1)]
     public List<int> GenreIds { get; set; } = new();
