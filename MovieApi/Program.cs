@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MovieApi.Data;
+using MovieApi.Extensions;
 using Scalar.AspNetCore;
 
 namespace MovieApi
@@ -24,6 +25,7 @@ namespace MovieApi
             builder.Services.AddOpenApi();
 
             var app = builder.Build();
+            app.SeedData();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
