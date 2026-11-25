@@ -1,5 +1,9 @@
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using MovieApi.Data;
+using MovieApi.DTOs.Actors;
+using MovieApi.DTOs.Errors;
 using MovieApi.DTOs.Mappings;
 using MovieApi.DTOs.MovieActors;
 using MovieApi.DTOs.Movies;
@@ -19,7 +23,7 @@ public class MoviesController(IUnitOfWork unitOfWork) : ControllerBase
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<MovieResponse>>> GetMovies(
+    public async Task<Ok<IReadOnlyList<MovieResponse>>> GetMovies(
         [FromQuery] string? genre,
         [FromQuery] int? year,
         [FromQuery] string? actor,
@@ -27,11 +31,12 @@ public class MoviesController(IUnitOfWork unitOfWork) : ControllerBase
         CancellationToken ct = default)
     {
         var movies = await _unitOfWork.Movies.GetMoviesAsync(genre, year, actor, withActors, ct);
-        return movies.Select(movie => movie.ToResponse(withActors)).ToList();
+        return TypedResults.Ok<IReadOnlyList<MovieResponse>>(
+            [.. movies.Select(movie => movie.ToResponse(withActors))]);
     }
 
-    [HttpGet("{id:int}")]
-    public async Task<ActionResult<MovieResponse>> GetMovie(
+    [HttpGet("{id:int}", Name = nameof(GetMovie))]
+    public async Task<Results<Ok<MovieResponse>, NotFound>> GetMovie(
         int id,
         [FromQuery] bool withActors = false,
         CancellationToken ct = default)
@@ -39,52 +44,52 @@ public class MoviesController(IUnitOfWork unitOfWork) : ControllerBase
         var movie = await _unitOfWork.Movies.GetByIdAsync(id, withActors, ct);
         if (movie is null)
         {
-            return NotFound();
+            return TypedResults.NotFound();
         }
 
-        return movie.ToResponse(withActors);
+        return TypedResults.Ok(movie.ToResponse(withActors));
     }
 
-    [HttpGet("{id:int}/details")]
-    public async Task<ActionResult<MovieDetailResponse>> GetMovieDetails(int id, CancellationToken ct = default)
+    [HttpGet("{id:int}/details", Name = nameof(GetMovieDetails))]
+    public async Task<Results<Ok<MovieDetailResponse>, NotFound>> GetMovieDetails(int id, CancellationToken ct = default)
     {
         var movie = await _unitOfWork.Movies.GetDetailsByIdAsync(id, ct);
 
         if (movie is null)
         {
-            return NotFound();
+            return TypedResults.NotFound();
         }
 
-        return movie;
+        return TypedResults.Ok(movie);
     }
 
     [HttpPost]
-    public async Task<ActionResult<MovieResponse>> CreateMovie(
+    public async Task<Results<CreatedAtRoute<MovieResponse>, BadRequest<ApiErrorResponse>>> CreateMovie(
         CreateMovieRequest request,
         CancellationToken ct = default)
     {
         var director = await FindDirectorAsync(request.DirectorId, ct);
         if (director is null)
         {
-            return BadRequest(new { message = "The director ID does not exist." });
+            return TypedResults.BadRequest(new ApiErrorResponse("The director ID does not exist."));
         }
 
         var country = await FindCountryAsync(request.CountryId, ct);
         if (country is null)
         {
-            return BadRequest(new { message = "The country ID does not exist." });
+            return TypedResults.BadRequest(new ApiErrorResponse("The country ID does not exist."));
         }
 
         var genres = await FindGenresAsync(request.GenreIds, ct);
         if (genres is null)
         {
-            return BadRequest(new { message = "One or more genre IDs do not exist." });
+            return TypedResults.BadRequest(new ApiErrorResponse("One or more genre IDs do not exist."));
         }
 
         var actors = await FindActorsAsync(request.ActorIds ?? new List<int>(), ct);
         if (actors is null)
         {
-            return BadRequest(new { message = "One or more actor IDs do not exist." });
+            return TypedResults.BadRequest(new ApiErrorResponse("One or more actor IDs do not exist."));
         }
 
         var movie = request.ToEntity(director, country, genres, actors);
@@ -92,14 +97,14 @@ public class MoviesController(IUnitOfWork unitOfWork) : ControllerBase
         _unitOfWork.Movies.Add(movie);
         await _unitOfWork.SaveChangesAsync(ct);
 
-        return CreatedAtAction(
+        return TypedResults.CreatedAtRoute(
+            movie.ToResponse(includeActors: true),
             nameof(GetMovie),
-            new { id = movie.Id },
-            movie.ToResponse(includeActors: true));
+            new { id = movie.Id });
     }
 
     [HttpPut("{id:int}")]
-    public async Task<IActionResult> UpdateMovie(
+    public async Task<Results<NoContent, NotFound, BadRequest<ApiErrorResponse>>> UpdateMovie(
         int id,
         UpdateMovieRequest request,
         CancellationToken ct = default)
@@ -108,55 +113,55 @@ public class MoviesController(IUnitOfWork unitOfWork) : ControllerBase
 
         if (movie is null)
         {
-            return NotFound();
+            return TypedResults.NotFound();
         }
 
         var director = await FindDirectorAsync(request.DirectorId, ct);
         if (director is null)
         {
-            return BadRequest(new { message = "The director ID does not exist." });
+            return TypedResults.BadRequest(new ApiErrorResponse("The director ID does not exist."));
         }
 
         var country = await FindCountryAsync(request.CountryId, ct);
         if (country is null)
         {
-            return BadRequest(new { message = "The country ID does not exist." });
+            return TypedResults.BadRequest(new ApiErrorResponse("The country ID does not exist."));
         }
 
         var genres = await FindGenresAsync(request.GenreIds, ct);
         if (genres is null)
         {
-            return BadRequest(new { message = "One or more genre IDs do not exist." });
+            return TypedResults.BadRequest(new ApiErrorResponse("One or more genre IDs do not exist."));
         }
 
         var actors = await FindActorsAsync(request.ActorIds ?? new List<int>(), ct);
         if (actors is null)
         {
-            return BadRequest(new { message = "One or more actor IDs do not exist." });
+            return TypedResults.BadRequest(new ApiErrorResponse("One or more actor IDs do not exist."));
         }
 
         request.UpdateEntity(movie, director, country, genres, actors);
 
         await _unitOfWork.SaveChangesAsync(ct);
-        return NoContent();
+        return TypedResults.NoContent();
     }
 
     [HttpDelete("{id:int}")]
-    public async Task<IActionResult> DeleteMovie(int id, CancellationToken ct = default)
+    public async Task<Results<NoContent, NotFound>> DeleteMovie(int id, CancellationToken ct = default)
     {
         var movie = await _unitOfWork.Movies.FindByIdAsync(id, ct);
         if (movie is null)
         {
-            return NotFound();
+            return TypedResults.NotFound();
         }
 
         _unitOfWork.Movies.Remove(movie);
         await _unitOfWork.SaveChangesAsync(ct);
-        return NoContent();
+        return TypedResults.NoContent();
     }
 
     [HttpPost("{movieId:int}/actors")]
-    public async Task<IActionResult> AddActorToMovie(
+    public async Task<Results<CreatedAtRoute<ActorResponse>, NotFound, Conflict<ApiErrorResponse>>> AddActorToMovie(
         int movieId,
         AddMovieActorRequest request,
         CancellationToken ct = default)
@@ -169,7 +174,7 @@ public class MoviesController(IUnitOfWork unitOfWork) : ControllerBase
     }
 
     [HttpPost("{movieId:int}/actors/{actorId:int}")]
-    public async Task<IActionResult> AddActorToMovie(
+    public async Task<Results<CreatedAtRoute<ActorResponse>, NotFound, Conflict<ApiErrorResponse>>> AddActorToMovie(
         int movieId,
         int actorId,
         AddMovieActorRoleRequest request,
@@ -182,7 +187,7 @@ public class MoviesController(IUnitOfWork unitOfWork) : ControllerBase
             ct);
     }
 
-    private async Task<IActionResult> AddActorToMovieAsync(
+    private async Task<Results<CreatedAtRoute<ActorResponse>, NotFound, Conflict<ApiErrorResponse>>> AddActorToMovieAsync(
         int movieId,
         int actorId,
         Func<Actor, MovieActor> createMovieActor,
@@ -192,23 +197,23 @@ public class MoviesController(IUnitOfWork unitOfWork) : ControllerBase
         var actor = await _unitOfWork.Actors.FindByIdAsync(actorId, ct);
         if (!movieExists || actor is null)
         {
-            return NotFound();
+            return TypedResults.NotFound();
         }
 
         var associationExists = await _unitOfWork.MovieActors.ExistsAsync(movieId, actorId, ct);
         if (associationExists)
         {
-            return Conflict(new { message = "This actor is already associated with the movie." });
+            return TypedResults.Conflict(new ApiErrorResponse("This actor is already associated with the movie."));
         }
 
         var movieActor = createMovieActor(actor);
         _unitOfWork.MovieActors.Add(movieActor);
         await _unitOfWork.SaveChangesAsync(ct);
 
-        return CreatedAtAction(
+        return TypedResults.CreatedAtRoute(
+            movieActor.ToResponse(),
             nameof(GetMovieDetails),
-            new { id = movieId },
-            movieActor.ToResponse());
+            new { id = movieId });
     }
 
     private async Task<List<Genre>?> FindGenresAsync(IEnumerable<int> ids, CancellationToken ct)

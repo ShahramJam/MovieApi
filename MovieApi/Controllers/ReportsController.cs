@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using MovieApi.Data;
 using MovieApi.DTOs.Reports;
@@ -14,38 +16,44 @@ public class ReportsController(IUnitOfWork unitOfWork) : ControllerBase
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
     [HttpGet("movies/top5pergenre")]
-    public async Task<ActionResult<IEnumerable<GenreTopMoviesResponse>>> GetTopFiveMoviesPerGenre(CancellationToken ct = default)
+    public async Task<Ok<IReadOnlyList<GenreTopMoviesResponse>>> GetTopFiveMoviesPerGenre(CancellationToken ct = default)
     {
-        return await _unitOfWork.Reports.GetTopFiveMoviesPerGenreAsync(ct);
+        return TypedResults.Ok<IReadOnlyList<GenreTopMoviesResponse>>(
+            await _unitOfWork.Reports.GetTopFiveMoviesPerGenreAsync(ct));
     }
 
     [HttpGet("movies/average-ratings")]
-    public async Task<ActionResult<IEnumerable<GenreAverageRatingResponse>>> GetAverageRatingsPerGenre(CancellationToken ct = default)
+    public async Task<Ok<IReadOnlyList<GenreAverageRatingResponse>>> GetAverageRatingsPerGenre(CancellationToken ct = default)
     {
-        return await _unitOfWork.Reports.GetAverageRatingsPerGenreAsync(ct);
+        return TypedResults.Ok<IReadOnlyList<GenreAverageRatingResponse>>(
+            await _unitOfWork.Reports.GetAverageRatingsPerGenreAsync(ct));
     }
 
     [HttpGet("actors/most-active")]
-    public async Task<ActionResult<IEnumerable<ActorActivityResponse>>> GetMostActiveActors(CancellationToken ct = default)
+    public async Task<Ok<IReadOnlyList<ActorActivityResponse>>> GetMostActiveActors(CancellationToken ct = default)
     {
-        return await _unitOfWork.Reports.GetMostActiveActorsAsync(ct);
+        return TypedResults.Ok<IReadOnlyList<ActorActivityResponse>>(
+            await _unitOfWork.Reports.GetMostActiveActorsAsync(ct));
     }
 
     [HttpGet("movies/longest-per-country")]
-    public async Task<ActionResult<IEnumerable<CountryLongestMovieResponse>>> GetLongestMoviesPerCountry(CancellationToken ct = default)
+    public async Task<Ok<IReadOnlyList<CountryLongestMovieResponse>>> GetLongestMoviesPerCountry(CancellationToken ct = default)
     {
-        return await _unitOfWork.Reports.GetLongestMoviesPerCountryAsync(ct);
+        return TypedResults.Ok<IReadOnlyList<CountryLongestMovieResponse>>(
+            await _unitOfWork.Reports.GetLongestMoviesPerCountryAsync(ct));
     }
 
     [HttpGet("movies/with-most-reviews")]
-    public async Task<ActionResult<IEnumerable<MovieReviewCountResponse>>> GetMoviesWithMostReviews(CancellationToken ct = default)
+    public async Task<Ok<IReadOnlyList<MovieReviewCountResponse>>> GetMoviesWithMostReviews(CancellationToken ct = default)
     {
-        return await _unitOfWork.Reports.GetMoviesWithMostReviewsAsync(ct);
+        return TypedResults.Ok<IReadOnlyList<MovieReviewCountResponse>>(
+            await _unitOfWork.Reports.GetMoviesWithMostReviewsAsync(ct));
     }
 
     [HttpGet("genres/popular")]
-    public async Task<ActionResult<IEnumerable<GenrePopularityResponse>>> GetPopularGenres(CancellationToken ct = default)
+    public async Task<Ok<IReadOnlyList<GenrePopularityResponse>>> GetPopularGenres(CancellationToken ct = default)
     {
-        return await _unitOfWork.Reports.GetPopularGenresAsync(ct);
+        return TypedResults.Ok<IReadOnlyList<GenrePopularityResponse>>(
+            await _unitOfWork.Reports.GetPopularGenresAsync(ct));
     }
 }

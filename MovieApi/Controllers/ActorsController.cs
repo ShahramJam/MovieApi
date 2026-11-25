@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using MovieApi.Data;
 using MovieApi.DTOs.Actors;
@@ -16,23 +18,26 @@ public class ActorsController(IUnitOfWork unitOfWork) : ControllerBase
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ActorResponse>>> GetActors(CancellationToken ct = default)
+    public async Task<Ok<IReadOnlyList<ActorResponse>>> GetActors(CancellationToken ct = default)
     {
         var actors = await _unitOfWork.Actors.GetAllAsync(ct);
 
-        return actors.Select(actor => actor.ToResponse()).ToList();
+        return TypedResults.Ok<IReadOnlyList<ActorResponse>>(
+            [.. actors.Select(actor => actor.ToResponse())]);
     }
 
-    [HttpGet("{id:int}")]
-    public async Task<ActionResult<ActorResponse>> GetActor(int id, CancellationToken ct = default)
+    [HttpGet("{id:int}", Name = nameof(GetActor))]
+    public async Task<Results<Ok<ActorResponse>, NotFound>> GetActor(int id, CancellationToken ct = default)
     {
         var actor = await _unitOfWork.Actors.GetByIdAsync(id, ct);
 
-        return actor is null ? NotFound() : actor.ToResponse();
+        return actor is null
+            ? TypedResults.NotFound()
+            : TypedResults.Ok(actor.ToResponse());
     }
 
     [HttpPost]
-    public async Task<ActionResult<ActorResponse>> CreateActor(
+    public async Task<CreatedAtRoute<ActorResponse>> CreateActor(
         CreateActorRequest request,
         CancellationToken ct = default)
     {
@@ -41,11 +46,11 @@ public class ActorsController(IUnitOfWork unitOfWork) : ControllerBase
         _unitOfWork.Actors.Add(actor);
         await _unitOfWork.SaveChangesAsync(ct);
 
-        return CreatedAtAction(nameof(GetActor), new { id = actor.Id }, actor.ToResponse());
+        return TypedResults.CreatedAtRoute(actor.ToResponse(), nameof(GetActor), new { id = actor.Id });
     }
 
     [HttpPut("{id:int}")]
-    public async Task<IActionResult> UpdateActor(
+    public async Task<Results<NoContent, NotFound>> UpdateActor(
         int id,
         UpdateActorRequest request,
         CancellationToken ct = default)
@@ -53,12 +58,12 @@ public class ActorsController(IUnitOfWork unitOfWork) : ControllerBase
         var actor = await _unitOfWork.Actors.FindByIdAsync(id, ct);
         if (actor is null)
         {
-            return NotFound();
+            return TypedResults.NotFound();
         }
 
         request.UpdateEntity(actor);
         await _unitOfWork.SaveChangesAsync(ct);
 
-        return NoContent();
+        return TypedResults.NoContent();
     }
 }
