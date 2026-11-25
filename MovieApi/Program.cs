@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MovieApi.Extensions;
+using MovieApi.Infrastructure;
 using Scalar.AspNetCore;
 
 namespace MovieApi
@@ -14,6 +15,10 @@ namespace MovieApi
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Services.AddControllers();
+
+            builder.Services.AddProblemDetails();
+
+            builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
             builder.Services.AddSqlServerPersistence(builder.Configuration);
 
@@ -28,6 +33,10 @@ namespace MovieApi
                 app.MapOpenApi();
                 app.MapScalarApiReference();
             }
+
+            app.UseExceptionHandler();
+
+            app.UseStatusCodePages();
 
             app.UseHttpsRedirection();
 
