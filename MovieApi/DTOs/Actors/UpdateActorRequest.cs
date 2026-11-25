@@ -2,6 +2,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MovieApi.DTOs.Actors;
 
-public record ActorCreateDto(
+public record UpdateActorRequest(
     [Required, StringLength(150, MinimumLength = 1)] string Name,
     [Range(1888, 2100)] int BirthYear);

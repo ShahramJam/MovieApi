@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace MovieApi.DTOs.Movies;
 
-public record MovieDto(
+public record MovieResponse(
     int Id,
     string Title,
     int Year,
@@ -13,4 +13,4 @@ public record MovieDto(
     int CountryId,
     string CountryName,
     List<string> Genres,
-    List<ActorDto> Actors);
+    List<ActorResponse> Actors);

@@ -7,10 +7,10 @@ namespace MovieApi.Repositories.Interfaces;
 
 public interface IReportRepository
 {
-    Task<List<GenreTopMoviesDto>> GetTopFiveMoviesPerGenreAsync(CancellationToken ct = default);
-    Task<List<GenreAverageRatingDto>> GetAverageRatingsPerGenreAsync(CancellationToken ct = default);
-    Task<List<ActorActivityDto>> GetMostActiveActorsAsync(CancellationToken ct = default);
-    Task<List<CountryLongestMovieDto>> GetLongestMoviesPerCountryAsync(CancellationToken ct = default);
-    Task<List<MovieReviewCountDto>> GetMoviesWithMostReviewsAsync(CancellationToken ct = default);
-    Task<List<GenrePopularityDto>> GetPopularGenresAsync(CancellationToken ct = default);
+    Task<List<GenreTopMoviesResponse>> GetTopFiveMoviesPerGenreAsync(CancellationToken ct = default);
+    Task<List<GenreAverageRatingResponse>> GetAverageRatingsPerGenreAsync(CancellationToken ct = default);
+    Task<List<ActorActivityResponse>> GetMostActiveActorsAsync(CancellationToken ct = default);
+    Task<List<CountryLongestMovieResponse>> GetLongestMoviesPerCountryAsync(CancellationToken ct = default);
+    Task<List<MovieReviewCountResponse>> GetMoviesWithMostReviewsAsync(CancellationToken ct = default);
+    Task<List<GenrePopularityResponse>> GetPopularGenresAsync(CancellationToken ct = default);
 }

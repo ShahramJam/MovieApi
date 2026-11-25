@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MovieApi.DTOs.Movies;
 
-public record MovieUpdateDto(
+public record UpdateMovieRequest(
     [Required, StringLength(200, MinimumLength = 1)] string Title,
     [Range(1888, 2100)] int Year,
     [Range(1, 1000)] int Duration,

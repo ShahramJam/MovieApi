@@ -10,9 +10,9 @@ namespace MovieApi.DTOs.Mappings;
 
 public static class MovieMappings
 {
-    public static MovieDto ToDto(this Movie movie, bool includeActors = false)
+    public static MovieResponse ToResponse(this Movie movie, bool includeActors = false)
     {
-        return new MovieDto(
+        return new MovieResponse(
             movie.Id,
             movie.Title,
             movie.Year,
@@ -25,14 +25,14 @@ public static class MovieMappings
             includeActors
                 ? movie.MovieActors
                     .OrderBy(movieActor => movieActor.Actor.Name)
-                    .Select(movieActor => movieActor.ToDto())
+                    .Select(movieActor => movieActor.ToResponse())
                     .ToList()
-                : new List<ActorDto>());
+                : new List<ActorResponse>());
     }
 
-    public static IQueryable<MovieDetailDto> SelectDetailDto(this IQueryable<Movie> movies)
+    public static IQueryable<MovieDetailResponse> SelectDetailResponse(this IQueryable<Movie> movies)
     {
-        return movies.Select(movie => new MovieDetailDto(
+        return movies.Select(movie => new MovieDetailResponse(
             movie.Id,
             movie.Title,
             movie.Year,
@@ -47,7 +47,7 @@ public static class MovieMappings
                 .ToList(),
             movie.MovieActors
                 .OrderBy(movieActor => movieActor.Actor.Name)
-                .Select(movieActor => new ActorDto(
+                .Select(movieActor => new ActorResponse(
                     movieActor.Actor.Id,
                     movieActor.Actor.Name,
                     movieActor.Actor.BirthYear,
@@ -55,14 +55,14 @@ public static class MovieMappings
                 .ToList(),
             movie.MovieDetails == null
                 ? null
-                : new MovieDetailsDto(
+                : new MovieDetailsResponse(
                     movie.MovieDetails.Id,
                     movie.MovieDetails.Synopsis,
                     movie.MovieDetails.Language,
                     movie.MovieDetails.Budget),
             movie.Reviews
                 .OrderBy(review => review.Id)
-                .Select(review => new ReviewDto(
+                .Select(review => new ReviewResponse(
                     review.Id,
                     review.ReviewerName,
                     review.Comment,
@@ -71,7 +71,7 @@ public static class MovieMappings
     }
 
     public static Movie ToEntity(
-        this MovieCreateDto movieDto,
+        this CreateMovieRequest request,
         Director director,
         Country country,
         IEnumerable<Genre> genres,
@@ -79,9 +79,9 @@ public static class MovieMappings
     {
         return new Movie
         {
-            Title = movieDto.Title,
-            Year = movieDto.Year,
-            Duration = movieDto.Duration,
+            Title = request.Title,
+            Year = request.Year,
+            Duration = request.Duration,
             DirectorId = director.Id,
             Director = director,
             CountryId = country.Id,
@@ -92,16 +92,16 @@ public static class MovieMappings
     }
 
     public static void UpdateEntity(
-        this MovieUpdateDto movieDto,
+        this UpdateMovieRequest request,
         Movie movie,
         Director director,
         Country country,
         IEnumerable<Genre> genres,
         IEnumerable<Actor> actors)
     {
-        movie.Title = movieDto.Title;
-        movie.Year = movieDto.Year;
-        movie.Duration = movieDto.Duration;
+        movie.Title = request.Title;
+        movie.Year = request.Year;
+        movie.Duration = request.Duration;
         movie.DirectorId = director.Id;
         movie.Director = director;
         movie.CountryId = country.Id;

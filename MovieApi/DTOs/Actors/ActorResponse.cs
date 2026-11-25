@@ -1,10 +1,9 @@
-using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
 namespace MovieApi.DTOs.Actors;
 
-public record ActorDto(
+public record ActorResponse(
     int Id,
-    [Required, StringLength(150, MinimumLength = 1)] string Name,
-    [Range(1888, 2100)] int BirthYear,
+    string Name,
+    int BirthYear,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? Role = null);

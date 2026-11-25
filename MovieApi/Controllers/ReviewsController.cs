@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using MovieApi.Data;
-using MovieApi.DTOs.Reviews;
 using MovieApi.DTOs.Mappings;
+using MovieApi.DTOs.Reviews;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -16,7 +16,9 @@ public class ReviewsController(IUnitOfWork unitOfWork) : ControllerBase
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
     [HttpGet("movies/{movieId:int}/reviews")]
-    public async Task<ActionResult<IEnumerable<ReviewDto>>> GetMovieReviews(int movieId, CancellationToken ct = default)
+    public async Task<ActionResult<IEnumerable<ReviewResponse>>> GetMovieReviews(
+        int movieId,
+        CancellationToken ct = default)
     {
         var movieExists = await _unitOfWork.Movies.ExistsAsync(movieId, ct);
         if (!movieExists)
@@ -26,13 +28,13 @@ public class ReviewsController(IUnitOfWork unitOfWork) : ControllerBase
 
         var reviews = await _unitOfWork.Reviews.GetByMovieIdAsync(movieId, ct);
 
-        return reviews.Select(review => review.ToDto()).ToList();
+        return reviews.Select(review => review.ToResponse()).ToList();
     }
 
     [HttpPost("movies/{movieId:int}/reviews")]
-    public async Task<ActionResult<ReviewDto>> CreateMovieReview(
+    public async Task<ActionResult<ReviewResponse>> CreateMovieReview(
         int movieId,
-        ReviewDto reviewDto,
+        CreateReviewRequest request,
         CancellationToken ct = default)
     {
         var movieExists = await _unitOfWork.Movies.ExistsAsync(movieId, ct);
@@ -41,7 +43,7 @@ public class ReviewsController(IUnitOfWork unitOfWork) : ControllerBase
             return NotFound();
         }
 
-        var review = reviewDto.ToEntity(movieId);
+        var review = request.ToEntity(movieId);
 
         _unitOfWork.Reviews.Add(review);
         await _unitOfWork.SaveChangesAsync(ct);
@@ -49,7 +51,7 @@ public class ReviewsController(IUnitOfWork unitOfWork) : ControllerBase
         return CreatedAtAction(
             nameof(GetMovieReviews),
             new { movieId },
-            review.ToDto());
+            review.ToResponse());
     }
 
     [HttpDelete("reviews/{id:int}")]

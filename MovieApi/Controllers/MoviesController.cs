@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using MovieApi.Data;
+using MovieApi.DTOs.Mappings;
 using MovieApi.DTOs.MovieActors;
 using MovieApi.DTOs.Movies;
-using MovieApi.DTOs.Mappings;
 using MovieApi.Models;
 using System;
 using System.Collections.Generic;
@@ -19,7 +19,7 @@ public class MoviesController(IUnitOfWork unitOfWork) : ControllerBase
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<MovieDto>>> GetMovies(
+    public async Task<ActionResult<IEnumerable<MovieResponse>>> GetMovies(
         [FromQuery] string? genre,
         [FromQuery] int? year,
         [FromQuery] string? actor,
@@ -27,11 +27,11 @@ public class MoviesController(IUnitOfWork unitOfWork) : ControllerBase
         CancellationToken ct = default)
     {
         var movies = await _unitOfWork.Movies.GetMoviesAsync(genre, year, actor, withActors, ct);
-        return movies.Select(movie => movie.ToDto(withActors)).ToList();
+        return movies.Select(movie => movie.ToResponse(withActors)).ToList();
     }
 
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<MovieDto>> GetMovie(
+    public async Task<ActionResult<MovieResponse>> GetMovie(
         int id,
         [FromQuery] bool withActors = false,
         CancellationToken ct = default)
@@ -42,11 +42,11 @@ public class MoviesController(IUnitOfWork unitOfWork) : ControllerBase
             return NotFound();
         }
 
-        return movie.ToDto(withActors);
+        return movie.ToResponse(withActors);
     }
 
     [HttpGet("{id:int}/details")]
-    public async Task<ActionResult<MovieDetailDto>> GetMovieDetails(int id, CancellationToken ct = default)
+    public async Task<ActionResult<MovieDetailResponse>> GetMovieDetails(int id, CancellationToken ct = default)
     {
         var movie = await _unitOfWork.Movies.GetDetailsByIdAsync(id, ct);
 
@@ -59,33 +59,35 @@ public class MoviesController(IUnitOfWork unitOfWork) : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<MovieDto>> CreateMovie(MovieCreateDto movieDto, CancellationToken ct = default)
+    public async Task<ActionResult<MovieResponse>> CreateMovie(
+        CreateMovieRequest request,
+        CancellationToken ct = default)
     {
-        var director = await FindDirectorAsync(movieDto.DirectorId, ct);
+        var director = await FindDirectorAsync(request.DirectorId, ct);
         if (director is null)
         {
             return BadRequest(new { message = "The director ID does not exist." });
         }
 
-        var country = await FindCountryAsync(movieDto.CountryId, ct);
+        var country = await FindCountryAsync(request.CountryId, ct);
         if (country is null)
         {
             return BadRequest(new { message = "The country ID does not exist." });
         }
 
-        var genres = await FindGenresAsync(movieDto.GenreIds, ct);
+        var genres = await FindGenresAsync(request.GenreIds, ct);
         if (genres is null)
         {
             return BadRequest(new { message = "One or more genre IDs do not exist." });
         }
 
-        var actors = await FindActorsAsync(movieDto.ActorIds ?? new List<int>(), ct);
+        var actors = await FindActorsAsync(request.ActorIds ?? new List<int>(), ct);
         if (actors is null)
         {
             return BadRequest(new { message = "One or more actor IDs do not exist." });
         }
 
-        var movie = movieDto.ToEntity(director, country, genres, actors);
+        var movie = request.ToEntity(director, country, genres, actors);
 
         _unitOfWork.Movies.Add(movie);
         await _unitOfWork.SaveChangesAsync(ct);
@@ -93,11 +95,14 @@ public class MoviesController(IUnitOfWork unitOfWork) : ControllerBase
         return CreatedAtAction(
             nameof(GetMovie),
             new { id = movie.Id },
-            movie.ToDto(includeActors: true));
+            movie.ToResponse(includeActors: true));
     }
 
     [HttpPut("{id:int}")]
-    public async Task<IActionResult> UpdateMovie(int id, MovieUpdateDto movieDto, CancellationToken ct = default)
+    public async Task<IActionResult> UpdateMovie(
+        int id,
+        UpdateMovieRequest request,
+        CancellationToken ct = default)
     {
         var movie = await _unitOfWork.Movies.GetForUpdateAsync(id, ct);
 
@@ -106,31 +111,31 @@ public class MoviesController(IUnitOfWork unitOfWork) : ControllerBase
             return NotFound();
         }
 
-        var director = await FindDirectorAsync(movieDto.DirectorId, ct);
+        var director = await FindDirectorAsync(request.DirectorId, ct);
         if (director is null)
         {
             return BadRequest(new { message = "The director ID does not exist." });
         }
 
-        var country = await FindCountryAsync(movieDto.CountryId, ct);
+        var country = await FindCountryAsync(request.CountryId, ct);
         if (country is null)
         {
             return BadRequest(new { message = "The country ID does not exist." });
         }
 
-        var genres = await FindGenresAsync(movieDto.GenreIds, ct);
+        var genres = await FindGenresAsync(request.GenreIds, ct);
         if (genres is null)
         {
             return BadRequest(new { message = "One or more genre IDs do not exist." });
         }
 
-        var actors = await FindActorsAsync(movieDto.ActorIds ?? new List<int>(), ct);
+        var actors = await FindActorsAsync(request.ActorIds ?? new List<int>(), ct);
         if (actors is null)
         {
             return BadRequest(new { message = "One or more actor IDs do not exist." });
         }
 
-        movieDto.UpdateEntity(movie, director, country, genres, actors);
+        request.UpdateEntity(movie, director, country, genres, actors);
 
         await _unitOfWork.SaveChangesAsync(ct);
         return NoContent();
@@ -153,13 +158,13 @@ public class MoviesController(IUnitOfWork unitOfWork) : ControllerBase
     [HttpPost("{movieId:int}/actors")]
     public async Task<IActionResult> AddActorToMovie(
         int movieId,
-        MovieActorCreateDto movieActorDto,
+        AddMovieActorRequest request,
         CancellationToken ct = default)
     {
         return await AddActorToMovieAsync(
             movieId,
-            movieActorDto.ActorId,
-            actor => movieActorDto.ToEntity(movieId, actor),
+            request.ActorId,
+            actor => request.ToEntity(movieId, actor),
             ct);
     }
 
@@ -167,13 +172,13 @@ public class MoviesController(IUnitOfWork unitOfWork) : ControllerBase
     public async Task<IActionResult> AddActorToMovie(
         int movieId,
         int actorId,
-        MovieActorRoleDto movieActorDto,
+        AddMovieActorRoleRequest request,
         CancellationToken ct = default)
     {
         return await AddActorToMovieAsync(
             movieId,
             actorId,
-            actor => movieActorDto.ToEntity(movieId, actor),
+            actor => request.ToEntity(movieId, actor),
             ct);
     }
 
@@ -203,7 +208,7 @@ public class MoviesController(IUnitOfWork unitOfWork) : ControllerBase
         return CreatedAtAction(
             nameof(GetMovieDetails),
             new { id = movieId },
-            movieActor.ToDto());
+            movieActor.ToResponse());
     }
 
     private async Task<List<Genre>?> FindGenresAsync(IEnumerable<int> ids, CancellationToken ct)

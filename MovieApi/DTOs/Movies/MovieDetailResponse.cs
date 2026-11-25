@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace MovieApi.DTOs.Movies;
 
-public record MovieDetailDto(
+public record MovieDetailResponse(
     int Id,
     string Title,
     int Year,
@@ -15,7 +15,7 @@ public record MovieDetailDto(
     int CountryId,
     string CountryName,
     List<string> Genres,
-    List<ActorDto> Actors,
-    MovieDetailsDto? MovieDetails,
-    List<ReviewDto> Reviews)
-    : MovieDto(Id, Title, Year, Duration, DirectorId, DirectorName, CountryId, CountryName, Genres, Actors);
+    List<ActorResponse> Actors,
+    MovieDetailsResponse? MovieDetails,
+    List<ReviewResponse> Reviews)
+    : MovieResponse(Id, Title, Year, Duration, DirectorId, DirectorName, CountryId, CountryName, Genres, Actors);

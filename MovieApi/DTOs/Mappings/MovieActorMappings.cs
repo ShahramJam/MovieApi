@@ -8,9 +8,9 @@ namespace MovieApi.DTOs.Mappings;
 
 public static class MovieActorMappings
 {
-    public static ActorDto ToDto(this MovieActor movieActor)
+    public static ActorResponse ToResponse(this MovieActor movieActor)
     {
-        return new ActorDto(
+        return new ActorResponse(
             movieActor.Actor.Id,
             movieActor.Actor.Name,
             movieActor.Actor.BirthYear,
@@ -27,7 +27,7 @@ public static class MovieActorMappings
     }
 
     public static MovieActor ToEntity(
-        this MovieActorCreateDto movieActorDto,
+        this AddMovieActorRequest request,
         int movieId,
         Actor actor)
     {
@@ -36,12 +36,12 @@ public static class MovieActorMappings
             MovieId = movieId,
             ActorId = actor.Id,
             Actor = actor,
-            Role = movieActorDto.Role
+            Role = request.Role
         };
     }
 
     public static MovieActor ToEntity(
-        this MovieActorRoleDto movieActorDto,
+        this AddMovieActorRoleRequest request,
         int movieId,
         Actor actor)
     {
@@ -50,7 +50,7 @@ public static class MovieActorMappings
             MovieId = movieId,
             ActorId = actor.Id,
             Actor = actor,
-            Role = movieActorDto.Role
+            Role = request.Role
         };
     }
 

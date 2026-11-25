@@ -81,13 +81,13 @@ public sealed class MovieRepository(MovieDbContext context) : IMovieRepository
             .FirstOrDefaultAsync(movie => movie.Id == id, ct);
     }
 
-    public async Task<MovieDetailDto?> GetDetailsByIdAsync(int id, CancellationToken ct = default)
+    public async Task<MovieDetailResponse?> GetDetailsByIdAsync(int id, CancellationToken ct = default)
     {
         return await _context.Movies
             .AsNoTracking()
             .Where(movie => movie.Id == id)
             .AsSplitQuery()
-            .SelectDetailDto()
+            .SelectDetailResponse()
             .FirstOrDefaultAsync(ct);
     }
 

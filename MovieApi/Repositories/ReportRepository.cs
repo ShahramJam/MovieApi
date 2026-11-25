@@ -13,7 +13,7 @@ public sealed class ReportRepository(MovieDbContext context) : IReportRepository
 {
     private readonly MovieDbContext _context = context;
 
-    public async Task<List<GenreTopMoviesDto>> GetTopFiveMoviesPerGenreAsync(CancellationToken ct = default)
+    public async Task<List<GenreTopMoviesResponse>> GetTopFiveMoviesPerGenreAsync(CancellationToken ct = default)
     {
         var genres = await _context.Genres
             .AsNoTracking()
@@ -51,7 +51,7 @@ public sealed class ReportRepository(MovieDbContext context) : IReportRepository
                 })
             .ToListAsync(ct);
 
-        return genres.Select(genre => new GenreTopMoviesDto(
+        return genres.Select(genre => new GenreTopMoviesResponse(
             genre.Id,
             genre.Name,
             ratedMovies
@@ -59,7 +59,7 @@ public sealed class ReportRepository(MovieDbContext context) : IReportRepository
                 .OrderByDescending(movie => movie.AverageRating)
                 .ThenBy(movie => movie.Title)
                 .Take(5)
-                .Select(movie => new MovieRatingDto(
+                .Select(movie => new MovieRatingResponse(
                     movie.MovieId,
                     movie.Title,
                     movie.Year,
@@ -68,12 +68,12 @@ public sealed class ReportRepository(MovieDbContext context) : IReportRepository
                 .ToList())).ToList();
     }
 
-    public Task<List<GenreAverageRatingDto>> GetAverageRatingsPerGenreAsync(CancellationToken ct = default)
+    public Task<List<GenreAverageRatingResponse>> GetAverageRatingsPerGenreAsync(CancellationToken ct = default)
     {
         return _context.Genres
             .AsNoTracking()
             .OrderBy(genre => genre.Name)
-            .Select(genre => new GenreAverageRatingDto(
+            .Select(genre => new GenreAverageRatingResponse(
                 genre.Id,
                 genre.Name,
                 genre.Movies
@@ -86,11 +86,11 @@ public sealed class ReportRepository(MovieDbContext context) : IReportRepository
             .ToListAsync(ct);
     }
 
-    public async Task<List<ActorActivityDto>> GetMostActiveActorsAsync(CancellationToken ct = default)
+    public async Task<List<ActorActivityResponse>> GetMostActiveActorsAsync(CancellationToken ct = default)
     {
         var actors = await _context.Actors
             .AsNoTracking()
-            .Select(actor => new ActorActivityDto(actor.Id, actor.Name, actor.MovieActors.Count))
+            .Select(actor => new ActorActivityResponse(actor.Id, actor.Name, actor.MovieActors.Count))
             .ToListAsync(ct);
 
         if (actors.Count == 0)
@@ -105,7 +105,7 @@ public sealed class ReportRepository(MovieDbContext context) : IReportRepository
             .ToList();
     }
 
-    public async Task<List<CountryLongestMovieDto>> GetLongestMoviesPerCountryAsync(CancellationToken ct = default)
+    public async Task<List<CountryLongestMovieResponse>> GetLongestMoviesPerCountryAsync(CancellationToken ct = default)
     {
         var longestDurations = _context.Movies
             .GroupBy(movie => movie.CountryId)
@@ -121,7 +121,7 @@ public sealed class ReportRepository(MovieDbContext context) : IReportRepository
                 longestDurations,
                 movie => new { movie.CountryId, movie.Duration },
                 longest => new { longest.CountryId, longest.Duration },
-                (movie, longest) => new CountryLongestMovieDto(
+                (movie, longest) => new CountryLongestMovieResponse(
                     movie.CountryId,
                     movie.Country.Name,
                     movie.Id,
@@ -133,11 +133,11 @@ public sealed class ReportRepository(MovieDbContext context) : IReportRepository
             .ToListAsync(ct);
     }
 
-    public async Task<List<MovieReviewCountDto>> GetMoviesWithMostReviewsAsync(CancellationToken ct = default)
+    public async Task<List<MovieReviewCountResponse>> GetMoviesWithMostReviewsAsync(CancellationToken ct = default)
     {
         var movies = await _context.Movies
             .AsNoTracking()
-            .Select(movie => new MovieReviewCountDto(
+            .Select(movie => new MovieReviewCountResponse(
                 movie.Id,
                 movie.Title,
                 movie.Year,
@@ -146,7 +146,7 @@ public sealed class ReportRepository(MovieDbContext context) : IReportRepository
 
         if (movies.Count == 0)
         {
-            return new List<MovieReviewCountDto>();
+            return new List<MovieReviewCountResponse>();
         }
 
         var mostReviews = movies.Max(movie => movie.ReviewCount);
@@ -156,11 +156,11 @@ public sealed class ReportRepository(MovieDbContext context) : IReportRepository
             .ToList();
     }
 
-    public Task<List<GenrePopularityDto>> GetPopularGenresAsync(CancellationToken ct = default)
+    public Task<List<GenrePopularityResponse>> GetPopularGenresAsync(CancellationToken ct = default)
     {
         return _context.Genres
             .AsNoTracking()
-            .Select(genre => new GenrePopularityDto(genre.Id, genre.Name, genre.Movies.Count))
+            .Select(genre => new GenrePopularityResponse(genre.Id, genre.Name, genre.Movies.Count))
             .OrderByDescending(genre => genre.MovieCount)
             .ThenBy(genre => genre.Genre)
             .ToListAsync(ct);

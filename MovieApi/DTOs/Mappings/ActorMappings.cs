@@ -5,23 +5,23 @@ namespace MovieApi.DTOs.Mappings;
 
 public static class ActorMappings
 {
-    public static ActorDto ToDto(this Actor actor)
+    public static ActorResponse ToResponse(this Actor actor)
     {
-        return new ActorDto(actor.Id, actor.Name, actor.BirthYear);
+        return new ActorResponse(actor.Id, actor.Name, actor.BirthYear);
     }
 
-    public static Actor ToEntity(this ActorCreateDto actorDto)
+    public static Actor ToEntity(this CreateActorRequest request)
     {
         return new Actor
         {
-            Name = actorDto.Name,
-            BirthYear = actorDto.BirthYear
+            Name = request.Name,
+            BirthYear = request.BirthYear
         };
     }
 
-    public static void UpdateEntity(this ActorUpdateDto actorDto, Actor actor)
+    public static void UpdateEntity(this UpdateActorRequest request, Actor actor)
     {
-        actor.Name = actorDto.Name;
-        actor.BirthYear = actorDto.BirthYear;
+        actor.Name = request.Name;
+        actor.BirthYear = request.BirthYear;
     }
 }
