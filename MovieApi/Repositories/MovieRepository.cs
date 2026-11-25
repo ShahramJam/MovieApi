@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using MovieApi.Data;
-using MovieApi.DTOs;
 using MovieApi.DTOs.Mappings;
+using MovieApi.DTOs.Movies;
 using MovieApi.Models;
 using MovieApi.Repositories.Interfaces;
 using System.Collections.Generic;

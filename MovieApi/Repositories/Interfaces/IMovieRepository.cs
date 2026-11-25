@@ -1,4 +1,4 @@
-using MovieApi.DTOs;
+using MovieApi.DTOs.Movies;
 using MovieApi.Models;
 using System.Collections.Generic;
 using System.Threading;

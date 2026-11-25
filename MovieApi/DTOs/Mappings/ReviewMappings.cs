@@ -1,3 +1,4 @@
+using MovieApi.DTOs.Reviews;
 using MovieApi.Models;
 
 namespace MovieApi.DTOs.Mappings;

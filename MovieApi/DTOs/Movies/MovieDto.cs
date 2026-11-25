@@ -1,6 +1,7 @@
+using MovieApi.DTOs.Actors;
 using System.Collections.Generic;
 
-namespace MovieApi.DTOs;
+namespace MovieApi.DTOs.Movies;
 
 public class MovieDto
 {

@@ -1,6 +1,9 @@
+using MovieApi.DTOs.Actors;
+using MovieApi.DTOs.MovieDetails;
+using MovieApi.DTOs.Reviews;
 using System.Collections.Generic;
 
-namespace MovieApi.DTOs;
+namespace MovieApi.DTOs.Movies;
 
 public class MovieDetailDto : MovieDto
 {

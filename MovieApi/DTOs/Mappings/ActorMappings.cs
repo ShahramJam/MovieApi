@@ -1,3 +1,4 @@
+using MovieApi.DTOs.Actors;
 using MovieApi.Models;
 
 namespace MovieApi.DTOs.Mappings;

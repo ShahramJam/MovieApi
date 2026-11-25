@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
-namespace MovieApi.DTOs;
+namespace MovieApi.DTOs.Actors;
 
 public class ActorDto
 {

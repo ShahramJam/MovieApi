@@ -1,3 +1,5 @@
+using MovieApi.DTOs.Actors;
+using MovieApi.DTOs.MovieActors;
 using MovieApi.Models;
 using System.Collections.Generic;
 using System.Linq;

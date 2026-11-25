@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using MovieApi.Data;
-using MovieApi.DTOs;
+using MovieApi.DTOs.Actors;
 using MovieApi.DTOs.Mappings;
 using System.Collections.Generic;
 using System.Linq;

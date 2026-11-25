@@ -502,8 +502,13 @@ The exact Scalar route depends on its configured defaults, usually the developme
 MovieApi/
 ├── Controllers/       API endpoints
 ├── DTOs/              Request and response models
+│   ├── Actors/        Actor DTOs
 │   ├── Mappings/      Entity/DTO mapping extensions
-│   └── Reports/       Report response models
+│   ├── MovieActors/   Movie-actor association DTOs
+│   ├── MovieDetails/  Movie-details DTOs
+│   ├── Movies/        Movie DTOs
+│   ├── Reports/       Report response models
+│   └── Reviews/       Review DTOs
 ├── Data/              DbContext and Fluent EF configurations
 ├── Extensions/        Migration and seed startup helpers
 ├── Migrations/        EF Core migration history
