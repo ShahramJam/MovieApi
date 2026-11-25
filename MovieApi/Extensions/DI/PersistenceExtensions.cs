@@ -6,7 +6,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 
-namespace MovieApi.Extensions;
+namespace MovieApi.Extensions.DI;
 
 public static class PersistenceExtensions
 {
@@ -18,7 +18,10 @@ public static class PersistenceExtensions
             ?? throw new InvalidOperationException("Connection string 'MovieDb' not found.");
 
         services.AddDbContext<MovieDbContext>(options =>
-            options.UseSqlServer(connectionString));
+            options
+                .UseSqlServer(connectionString)
+                .UseSeeding(DbSeeder.Seed)
+                .UseAsyncSeeding(DbSeeder.SeedAsync));
 
         services.AddRepositoriesFromAssembly(Assembly.GetExecutingAssembly());
         services.AddScoped<IUnitOfWork, UnitOfWork>();

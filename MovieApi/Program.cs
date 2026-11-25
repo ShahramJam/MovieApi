@@ -2,15 +2,17 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using MovieApi.Extensions;
+using MovieApi.Data.Extenstions;
+using MovieApi.Extensions.DI;
 using MovieApi.Infrastructure;
 using Scalar.AspNetCore;
+using System.Threading.Tasks;
 
 namespace MovieApi
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -26,7 +28,7 @@ namespace MovieApi
 
             var app = builder.Build();
 
-            app.SeedData();
+            await app.SeedDataAsync();
 
             if (app.Environment.IsDevelopment())
             {
@@ -44,7 +46,7 @@ namespace MovieApi
 
             app.MapControllers();
 
-            app.Run();
+            await app.RunAsync();
         }
     }
 }

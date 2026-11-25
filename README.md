@@ -44,7 +44,7 @@ On startup, the application:
 1. Registers controllers and dependencies.
 2. Registers Problem Details and the global exception handler.
 3. Creates the database context.
-4. Applies pending EF Core migrations with `Database.Migrate()`.
+4. Applies pending EF Core migrations asynchronously; EF Core runs the configured async seed callback.
 5. Seeds initial data only when no movies exist.
 6. Registers HTTPS redirection and status-code pages.
 7. Maps controllers and, in Development, `/openapi/v1.json` and the Scalar API reference.
@@ -386,11 +386,12 @@ The project separates responsibilities through:
 
 ## Database startup and seed data
 
-`SeedData()` is called immediately after the application is built. It:
+`SeedDataAsync()` is called immediately after the application is built to apply pending migrations. EF Core's configured `UseAsyncSeeding` callback then:
 
-1. Applies pending migrations.
-2. Leaves existing data unchanged if the `Movies` table contains records.
-3. Seeds genres, directors, countries, actors, movies, movie details, roles, and reviews when the database is empty.
+1. Leaves existing data unchanged if the `Movies` table contains records.
+2. Seeds genres, directors, countries, actors, movies, movie details, roles, and reviews when the database is empty.
+
+The matching `UseSeeding` callback provides the same behavior for EF Core tooling that invokes the synchronous seeding hook.
 
 ## Global exception handling
 
