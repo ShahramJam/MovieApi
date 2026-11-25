@@ -13,8 +13,6 @@ namespace MovieApi
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-
             builder.Services.AddControllers();
 
             builder.Services.AddSqlServerPersistence(builder.Configuration);
@@ -22,9 +20,9 @@ namespace MovieApi
             builder.Services.AddOpenApi();
 
             var app = builder.Build();
+
             app.SeedData();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.MapOpenApi();

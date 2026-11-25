@@ -5,14 +5,12 @@ namespace MovieApi.DTOs.Mappings;
 
 public static class MovieDetailsMappings
 {
-    public static MovieDetailsDto ToDto(this MovieDetailsEntity movieDetails)
+    public static MovieDetailsResponse ToResponse(this MovieDetailsEntity movieDetails)
     {
-        return new MovieDetailsDto
-        {
-            Id = movieDetails.Id,
-            Synopsis = movieDetails.Synopsis,
-            Language = movieDetails.Language,
-            Budget = movieDetails.Budget
-        };
+        return new MovieDetailsResponse(
+            movieDetails.Id,
+            movieDetails.Synopsis,
+            movieDetails.Language,
+            movieDetails.Budget);
     }
 }

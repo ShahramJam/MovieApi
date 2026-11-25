@@ -501,7 +501,7 @@ The exact Scalar route depends on its configured defaults, usually the developme
 ```text
 MovieApi/
 ├── Controllers/       API endpoints
-├── DTOs/              Request and response models
+├── DTOs/              Entity-specific request and response records
 │   ├── Actors/        Actor DTOs
 │   ├── Mappings/      Entity/DTO mapping extensions
 │   ├── MovieActors/   Movie-actor association DTOs
