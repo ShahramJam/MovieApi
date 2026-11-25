@@ -508,6 +508,7 @@ MovieApi/
 ├── Extensions/        Migration and seed startup helpers
 ├── Migrations/        EF Core migration history
 ├── Models/            Database entities
+├── Repositories/      Entity-specific repositories and unit of work
 ├── Properties/        Launch settings
 ├── appsettings.json   SQL Server and logging configuration
 └── Program.cs         Dependency injection and middleware setup
@@ -516,6 +517,6 @@ MovieApi/
 ## Notes
 
 - Authentication/authorization middleware is registered, but there are currently no protected endpoints or authorization policies.
-- All controllers use dependency-injected `MovieDbContext` instances.
+- Controllers use a dependency-injected `IUnitOfWork` with entity-specific repositories; there is no generic repository.
 - HTTPS redirection is enabled in the application pipeline.
-- The project does not currently define a separate repository/service layer; controller actions query the EF Core context directly.
+- The startup seed helper uses `MovieDbContext` directly for migrations and initial data.

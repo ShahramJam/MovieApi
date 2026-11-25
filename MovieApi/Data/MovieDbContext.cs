@@ -3,13 +3,8 @@ using MovieApi.Models;
 
 namespace MovieApi.Data;
 
-public class MovieDbContext : DbContext
+public class MovieDbContext(DbContextOptions<MovieDbContext> options) : DbContext(options)
 {
-    public MovieDbContext(DbContextOptions<MovieDbContext> options)
-        : base(options)
-    {
-    }
-
     public DbSet<Movie> Movies => Set<Movie>();
     public DbSet<MovieDetails> MovieDetails => Set<MovieDetails>();
     public DbSet<Review> Reviews => Set<Review>();

@@ -1,10 +1,7 @@
 
 using Microsoft.AspNetCore.Builder;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using MovieApi.Data;
 using MovieApi.Extensions;
 using Scalar.AspNetCore;
 
@@ -19,8 +16,8 @@ namespace MovieApi
             // Add services to the container.
 
             builder.Services.AddControllers();
-            builder.Services.AddDbContext<MovieDbContext>(options =>
-                options.UseSqlServer(builder.Configuration.GetConnectionString("MovieDb")));
+
+            builder.Services.AddSqlServerPersistence(builder.Configuration);
 
             builder.Services.AddOpenApi();
 
@@ -37,7 +34,6 @@ namespace MovieApi
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
-
 
             app.MapControllers();
 
