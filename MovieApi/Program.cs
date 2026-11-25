@@ -34,7 +34,7 @@ namespace MovieApi
                 app.MapScalarApiReference();
             }
 
-            app.UseExceptionHandler();  
+            app.UseExceptionHandler();
 
             app.UseStatusCodePages();
 
