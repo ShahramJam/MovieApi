@@ -51,25 +51,21 @@ public sealed class ReportRepository(MovieDbContext context) : IReportRepository
                 })
             .ToListAsync(ct);
 
-        return genres.Select(genre => new GenreTopMoviesDto
-        {
-            GenreId = genre.Id,
-            Genre = genre.Name,
-            Movies = ratedMovies
+        return genres.Select(genre => new GenreTopMoviesDto(
+            genre.Id,
+            genre.Name,
+            ratedMovies
                 .Where(movie => movie.GenreId == genre.Id)
                 .OrderByDescending(movie => movie.AverageRating)
                 .ThenBy(movie => movie.Title)
                 .Take(5)
-                .Select(movie => new MovieRatingDto
-                {
-                    MovieId = movie.MovieId,
-                    Title = movie.Title,
-                    Year = movie.Year,
-                    AverageRating = movie.AverageRating,
-                    ReviewCount = movie.ReviewCount
-                })
-                .ToList()
-        }).ToList();
+                .Select(movie => new MovieRatingDto(
+                    movie.MovieId,
+                    movie.Title,
+                    movie.Year,
+                    movie.AverageRating,
+                    movie.ReviewCount))
+                .ToList())).ToList();
     }
 
     public Task<List<GenreAverageRatingDto>> GetAverageRatingsPerGenreAsync(CancellationToken ct = default)
@@ -77,18 +73,16 @@ public sealed class ReportRepository(MovieDbContext context) : IReportRepository
         return _context.Genres
             .AsNoTracking()
             .OrderBy(genre => genre.Name)
-            .Select(genre => new GenreAverageRatingDto
-            {
-                GenreId = genre.Id,
-                Genre = genre.Name,
-                AverageRating = genre.Movies
+            .Select(genre => new GenreAverageRatingDto(
+                genre.Id,
+                genre.Name,
+                genre.Movies
                     .SelectMany(movie => movie.Reviews)
                     .Select(review => (double?)review.Rating)
                     .Average(),
-                ReviewCount = genre.Movies
+                genre.Movies
                     .SelectMany(movie => movie.Reviews)
-                    .Count()
-            })
+                    .Count()))
             .ToListAsync(ct);
     }
 
@@ -96,12 +90,7 @@ public sealed class ReportRepository(MovieDbContext context) : IReportRepository
     {
         var actors = await _context.Actors
             .AsNoTracking()
-            .Select(actor => new ActorActivityDto
-            {
-                ActorId = actor.Id,
-                Name = actor.Name,
-                MovieCount = actor.MovieActors.Count
-            })
+            .Select(actor => new ActorActivityDto(actor.Id, actor.Name, actor.MovieActors.Count))
             .ToListAsync(ct);
 
         if (actors.Count == 0)
@@ -132,15 +121,13 @@ public sealed class ReportRepository(MovieDbContext context) : IReportRepository
                 longestDurations,
                 movie => new { movie.CountryId, movie.Duration },
                 longest => new { longest.CountryId, longest.Duration },
-                (movie, longest) => new CountryLongestMovieDto
-                {
-                    CountryId = movie.CountryId,
-                    Country = movie.Country.Name,
-                    MovieId = movie.Id,
-                    Title = movie.Title,
-                    Year = movie.Year,
-                    Duration = movie.Duration
-                })
+                (movie, longest) => new CountryLongestMovieDto(
+                    movie.CountryId,
+                    movie.Country.Name,
+                    movie.Id,
+                    movie.Title,
+                    movie.Year,
+                    movie.Duration))
             .OrderBy(movie => movie.Country)
             .ThenBy(movie => movie.Title)
             .ToListAsync(ct);
@@ -150,13 +137,11 @@ public sealed class ReportRepository(MovieDbContext context) : IReportRepository
     {
         var movies = await _context.Movies
             .AsNoTracking()
-            .Select(movie => new MovieReviewCountDto
-            {
-                MovieId = movie.Id,
-                Title = movie.Title,
-                Year = movie.Year,
-                ReviewCount = movie.Reviews.Count
-            })
+            .Select(movie => new MovieReviewCountDto(
+                movie.Id,
+                movie.Title,
+                movie.Year,
+                movie.Reviews.Count))
             .ToListAsync(ct);
 
         if (movies.Count == 0)
@@ -175,12 +160,7 @@ public sealed class ReportRepository(MovieDbContext context) : IReportRepository
     {
         return _context.Genres
             .AsNoTracking()
-            .Select(genre => new GenrePopularityDto
-            {
-                GenreId = genre.Id,
-                Genre = genre.Name,
-                MovieCount = genre.Movies.Count
-            })
+            .Select(genre => new GenrePopularityDto(genre.Id, genre.Name, genre.Movies.Count))
             .OrderByDescending(genre => genre.MovieCount)
             .ThenBy(genre => genre.Genre)
             .ToListAsync(ct);

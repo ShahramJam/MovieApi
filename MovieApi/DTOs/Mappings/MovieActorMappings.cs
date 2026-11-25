@@ -10,13 +10,11 @@ public static class MovieActorMappings
 {
     public static ActorDto ToDto(this MovieActor movieActor)
     {
-        return new ActorDto
-        {
-            Id = movieActor.Actor.Id,
-            Name = movieActor.Actor.Name,
-            BirthYear = movieActor.Actor.BirthYear,
-            Role = movieActor.Role
-        };
+        return new ActorDto(
+            movieActor.Actor.Id,
+            movieActor.Actor.Name,
+            movieActor.Actor.BirthYear,
+            movieActor.Role);
     }
 
     public static MovieActor ToMovieActor(this Actor actor, string role = "Actor")

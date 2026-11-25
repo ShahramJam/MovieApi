@@ -2,58 +2,31 @@ using System.Collections.Generic;
 
 namespace MovieApi.DTOs.Reports;
 
-public sealed class GenreTopMoviesDto
-{
-    public int GenreId { get; set; }
-    public string Genre { get; set; } = string.Empty;
-    public List<MovieRatingDto> Movies { get; set; } = new();
-}
+public sealed record GenreTopMoviesDto(int GenreId, string Genre, List<MovieRatingDto> Movies);
 
-public sealed class MovieRatingDto
-{
-    public int MovieId { get; set; }
-    public string Title { get; set; } = string.Empty;
-    public int Year { get; set; }
-    public double AverageRating { get; set; }
-    public int ReviewCount { get; set; }
-}
+public sealed record MovieRatingDto(
+    int MovieId,
+    string Title,
+    int Year,
+    double AverageRating,
+    int ReviewCount);
 
-public sealed class GenreAverageRatingDto
-{
-    public int GenreId { get; set; }
-    public string Genre { get; set; } = string.Empty;
-    public double? AverageRating { get; set; }
-    public int ReviewCount { get; set; }
-}
+public sealed record GenreAverageRatingDto(
+    int GenreId,
+    string Genre,
+    double? AverageRating,
+    int ReviewCount);
 
-public sealed class ActorActivityDto
-{
-    public int ActorId { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public int MovieCount { get; set; }
-}
+public sealed record ActorActivityDto(int ActorId, string Name, int MovieCount);
 
-public sealed class CountryLongestMovieDto
-{
-    public int CountryId { get; set; }
-    public string Country { get; set; } = string.Empty;
-    public int MovieId { get; set; }
-    public string Title { get; set; } = string.Empty;
-    public int Year { get; set; }
-    public int Duration { get; set; }
-}
+public sealed record CountryLongestMovieDto(
+    int CountryId,
+    string Country,
+    int MovieId,
+    string Title,
+    int Year,
+    int Duration);
 
-public sealed class MovieReviewCountDto
-{
-    public int MovieId { get; set; }
-    public string Title { get; set; } = string.Empty;
-    public int Year { get; set; }
-    public int ReviewCount { get; set; }
-}
+public sealed record MovieReviewCountDto(int MovieId, string Title, int Year, int ReviewCount);
 
-public sealed class GenrePopularityDto
-{
-    public int GenreId { get; set; }
-    public string Genre { get; set; } = string.Empty;
-    public int MovieCount { get; set; }
-}
+public sealed record GenrePopularityDto(int GenreId, string Genre, int MovieCount);

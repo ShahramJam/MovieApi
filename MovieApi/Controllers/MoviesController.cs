@@ -79,7 +79,7 @@ public class MoviesController(IUnitOfWork unitOfWork) : ControllerBase
             return BadRequest(new { message = "One or more genre IDs do not exist." });
         }
 
-        var actors = await FindActorsAsync(movieDto.ActorIds, ct);
+        var actors = await FindActorsAsync(movieDto.ActorIds ?? new List<int>(), ct);
         if (actors is null)
         {
             return BadRequest(new { message = "One or more actor IDs do not exist." });
@@ -124,7 +124,7 @@ public class MoviesController(IUnitOfWork unitOfWork) : ControllerBase
             return BadRequest(new { message = "One or more genre IDs do not exist." });
         }
 
-        var actors = await FindActorsAsync(movieDto.ActorIds, ct);
+        var actors = await FindActorsAsync(movieDto.ActorIds ?? new List<int>(), ct);
         if (actors is null)
         {
             return BadRequest(new { message = "One or more actor IDs do not exist." });

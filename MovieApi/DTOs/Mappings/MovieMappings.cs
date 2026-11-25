@@ -12,70 +12,62 @@ public static class MovieMappings
 {
     public static MovieDto ToDto(this Movie movie, bool includeActors = false)
     {
-        return new MovieDto
-        {
-            Id = movie.Id,
-            Title = movie.Title,
-            Year = movie.Year,
-            Duration = movie.Duration,
-            DirectorId = movie.DirectorId,
-            DirectorName = movie.Director.Name,
-            CountryId = movie.CountryId,
-            CountryName = movie.Country.Name,
-            Genres = movie.Genres.Select(genre => genre.Name).OrderBy(name => name).ToList(),
-            Actors = includeActors
+        return new MovieDto(
+            movie.Id,
+            movie.Title,
+            movie.Year,
+            movie.Duration,
+            movie.DirectorId,
+            movie.Director.Name,
+            movie.CountryId,
+            movie.Country.Name,
+            movie.Genres.Select(genre => genre.Name).OrderBy(name => name).ToList(),
+            includeActors
                 ? movie.MovieActors
                     .OrderBy(movieActor => movieActor.Actor.Name)
                     .Select(movieActor => movieActor.ToDto())
                     .ToList()
-                : new List<ActorDto>()
-        };
+                : new List<ActorDto>());
     }
 
     public static IQueryable<MovieDetailDto> SelectDetailDto(this IQueryable<Movie> movies)
     {
-        return movies.Select(movie => new MovieDetailDto
-        {
-            Id = movie.Id,
-            Title = movie.Title,
-            Year = movie.Year,
-            Duration = movie.Duration,
-            DirectorId = movie.DirectorId,
-            DirectorName = movie.Director.Name,
-            CountryId = movie.CountryId,
-            CountryName = movie.Country.Name,
-            Genres = movie.Genres
+        return movies.Select(movie => new MovieDetailDto(
+            movie.Id,
+            movie.Title,
+            movie.Year,
+            movie.Duration,
+            movie.DirectorId,
+            movie.Director.Name,
+            movie.CountryId,
+            movie.Country.Name,
+            movie.Genres
                 .Select(genre => genre.Name)
                 .OrderBy(name => name)
                 .ToList(),
-            MovieDetails = movie.MovieDetails == null ? null : new MovieDetailsDto
-            {
-                Id = movie.MovieDetails.Id,
-                Synopsis = movie.MovieDetails.Synopsis,
-                Language = movie.MovieDetails.Language,
-                Budget = movie.MovieDetails.Budget
-            },
-            Reviews = movie.Reviews
-                .OrderBy(review => review.Id)
-                .Select(review => new ReviewDto
-                {
-                    Id = review.Id,
-                    ReviewerName = review.ReviewerName,
-                    Comment = review.Comment,
-                    Rating = review.Rating
-                })
-                .ToList(),
-            Actors = movie.MovieActors
+            movie.MovieActors
                 .OrderBy(movieActor => movieActor.Actor.Name)
-                .Select(movieActor => new ActorDto
-                {
-                    Id = movieActor.Actor.Id,
-                    Name = movieActor.Actor.Name,
-                    BirthYear = movieActor.Actor.BirthYear,
-                    Role = movieActor.Role
-                })
-                .ToList()
-        });
+                .Select(movieActor => new ActorDto(
+                    movieActor.Actor.Id,
+                    movieActor.Actor.Name,
+                    movieActor.Actor.BirthYear,
+                    movieActor.Role))
+                .ToList(),
+            movie.MovieDetails == null
+                ? null
+                : new MovieDetailsDto(
+                    movie.MovieDetails.Id,
+                    movie.MovieDetails.Synopsis,
+                    movie.MovieDetails.Language,
+                    movie.MovieDetails.Budget),
+            movie.Reviews
+                .OrderBy(review => review.Id)
+                .Select(review => new ReviewDto(
+                    review.Id,
+                    review.ReviewerName,
+                    review.Comment,
+                    review.Rating))
+                .ToList()));
     }
 
     public static Movie ToEntity(

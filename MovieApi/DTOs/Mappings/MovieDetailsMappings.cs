@@ -7,12 +7,10 @@ public static class MovieDetailsMappings
 {
     public static MovieDetailsDto ToDto(this MovieDetailsEntity movieDetails)
     {
-        return new MovieDetailsDto
-        {
-            Id = movieDetails.Id,
-            Synopsis = movieDetails.Synopsis,
-            Language = movieDetails.Language,
-            Budget = movieDetails.Budget
-        };
+        return new MovieDetailsDto(
+            movieDetails.Id,
+            movieDetails.Synopsis,
+            movieDetails.Language,
+            movieDetails.Budget);
     }
 }

@@ -7,12 +7,7 @@ public static class ActorMappings
 {
     public static ActorDto ToDto(this Actor actor)
     {
-        return new ActorDto
-        {
-            Id = actor.Id,
-            Name = actor.Name,
-            BirthYear = actor.BirthYear
-        };
+        return new ActorDto(actor.Id, actor.Name, actor.BirthYear);
     }
 
     public static Actor ToEntity(this ActorCreateDto actorDto)
