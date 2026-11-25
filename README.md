@@ -1,6 +1,6 @@
 # MovieApi
 
-ASP.NET Core Web API for managing movies, actors, reviews, and aggregate reports. The project uses Entity Framework Core with SQL Server and exposes an OpenAPI document plus a Scalar API reference in the Development environment.
+ASP.NET Core Web API for managing movies, actors, reviews, and aggregate reports. The project uses Entity Framework Core with SQL Server and exposes OpenAPI and a Scalar API reference in the Development environment.
 
 ## Technologies
 
@@ -9,10 +9,11 @@ ASP.NET Core Web API for managing movies, actors, reviews, and aggregate reports
 - SQL Server
 - OpenAPI (`Microsoft.AspNetCore.OpenApi`)
 - Scalar API reference
-- ASP.NET Core controller-based APIs
+- Controller-based ASP.NET Core APIs
 - Fluent EF Core entity configurations
-- DTO mapping extension methods
-- Automatic migrations and seed data startup
+- Repository and unit-of-work pattern
+- Request/response records with mapping extensions
+- Automatic migrations, seed data, and global exception handling
 
 ## Requirements
 
@@ -30,19 +31,23 @@ Update `MovieApi/appsettings.Development.json` or environment configuration if S
 
 ## Run the application
 
+From the repository root:
+
 ```bash
+dotnet restore MovieApi.slnx
 cd MovieApi
-dotnet restore
 dotnet run
 ```
 
 On startup, the application:
 
-1. Creates the database context.
-2. Applies pending EF Core migrations with `Database.Migrate()`.
-3. Seeds initial data only when no movies exist.
-4. Starts the HTTPS redirect middleware.
-5. Maps controllers and, in Development, `/openapi/v1.json` and the Scalar API reference.
+1. Registers controllers and dependencies.
+2. Registers Problem Details and the global exception handler.
+3. Creates the database context.
+4. Applies pending EF Core migrations with `Database.Migrate()`.
+5. Seeds initial data only when no movies exist.
+6. Registers HTTPS redirection and status-code pages.
+7. Maps controllers and, in Development, `/openapi/v1.json` and the Scalar API reference.
 
 ## API base route
 
@@ -87,7 +92,7 @@ Creates an actor.
 }
 ```
 
-- `201 Created` — returns the created `ActorDto`
+- `201 Created` — returns the created `ActorResponse`
 - `400 Bad Request` — request validation fails
 
 ### `PUT /api/actors/{id}`
@@ -175,8 +180,6 @@ Returns the movie's complete detail projection, including:
 - `200 OK` — details found
 - `404 Not Found` — movie does not exist
 
-The response shape extends `MovieDto` with `movieDetails`, `reviews`, and `actors`.
-
 ### `POST /api/movies`
 
 Creates a movie. `directorId`, `countryId`, and all `genreIds` must identify existing records.
@@ -193,7 +196,7 @@ Creates a movie. `directorId`, `countryId`, and all `genreIds` must identify exi
 }
 ```
 
-- `201 Created` — returns `MovieDto`
+- `201 Created` — returns `MovieResponse`
 - `400 Bad Request` — director, country, genre, or actor ID is invalid
 - `400 Bad Request` — request validation fails
 
@@ -302,12 +305,6 @@ All report endpoints are rooted at `/api/reports` and use EF Core projections or
 
 Returns each genre and up to five highest-rated movies containing a review. Ordering is average rating descending, then title ascending.
 
-Representative fields:
-
-```text
-GenreId, Genre, Movies[{ MovieId, Title, Year, AverageRating, ReviewCount }]
-```
-
 ### `GET /api/reports/movies/average-ratings`
 
 Returns every genre's average review rating and review count.
@@ -315,106 +312,45 @@ Returns every genre's average review rating and review count.
 - `AverageRating` is `null` when a genre has no reviews.
 - Genres are ordered by name.
 
-```text
-GenreId, Genre, AverageRating, ReviewCount
-```
-
 ### `GET /api/reports/actors/most-active`
 
 Returns all actors tied for the highest number of movie associations.
-
-```text
-ActorId, Name, MovieCount
-```
 
 ### `GET /api/reports/movies/longest-per-country`
 
 Returns the longest movie, or all longest-duration ties, for every country represented in the movie table.
 
-```text
-CountryId, Country, MovieId, Title, Year, Duration
-```
-
 ### `GET /api/reports/movies/with-most-reviews`
 
-Returns every movie tied for the maximum review count.
-
-```text
-MovieId, Title, Year, ReviewCount
-```
-
-An empty database returns an empty array.
+Returns every movie tied for the maximum review count. An empty database returns an empty array.
 
 ### `GET /api/reports/genres/popular`
 
 Returns genres ordered by descending movie count, then genre name.
 
-```text
-GenreId, Genre, MovieCount
-```
-
 ## Request DTOs and validation
 
-### `ActorCreateDto` / `ActorUpdateDto`
-
-| Field | Constraints |
-|---|---|
-| `Name` | Required, 1–150 characters |
-| `BirthYear` | Range 1888–2100 |
-
-### `ActorDto`
-
-Contains `Id`, `Name`, `BirthYear`, and optional `Role`. The role is included when an actor is projected as part of a movie.
-
-### `MovieCreateDto` / `MovieUpdateDto`
-
-| Field | Constraints |
-|---|---|
-| `Title` | Required, 1–200 characters |
-| `Year` | Range 1888–2100 |
-| `Duration` | Range 1–1000 minutes |
-| `DirectorId` | Positive integer and must exist |
-| `CountryId` | Positive integer and must exist |
-| `GenreIds` | Required collection with at least one ID |
-| `ActorIds` | Optional collection; every ID must exist |
+| Request | Field | Constraints |
+|---|---|---|
+| `CreateActorRequest` / `UpdateActorRequest` | `Name` | Required, 1–150 characters |
+|  | `BirthYear` | Range 1888–2100 |
+| `CreateMovieRequest` / `UpdateMovieRequest` | `Title` | Required, 1–200 characters |
+|  | `Year` | Range 1888–2100 |
+|  | `Duration` | Range 1–1000 minutes |
+|  | `DirectorId` | Positive integer and must exist |
+|  | `CountryId` | Positive integer and must exist |
+|  | `GenreIds` | Required collection with at least one ID |
+|  | `ActorIds` | Optional collection; every ID must exist |
+| `AddMovieActorRequest` / `AddMovieActorRoleRequest` | `Role` | Required, 1–100 characters |
+| `CreateReviewRequest` | `ReviewerName` | Required, 1–100 characters |
+|  | `Comment` | Required, 1–2000 characters |
+|  | `Rating` | Integer range 1–5 |
 
 `[ApiController]` enables automatic model-state validation. Invalid payloads return `400 Bad Request` before action logic is invoked.
 
-### `MovieDto` / `MovieDetailDto`
-
-`MovieDto` exposes the movie, director and country IDs/names, genre names, and optionally actors.
-
-`MovieDetailDto` additionally exposes:
-
-- `MovieDetails` — synopsis, language, budget, and details ID
-- `Reviews` — reviewer name, comment, and rating
-- `Actors` — actor data and roles
-
-### `MovieActorCreateDto`
-
-| Field | Constraints |
-|---|---|
-| `ActorId` | Positive integer |
-| `Role` | Required, 1–100 characters |
-
-### `MovieActorRoleDto`
-
-| Field | Constraints |
-|---|---|
-| `Role` | Required, 1–100 characters |
-
-### `ReviewDto`
-
-| Field | Constraints |
-|---|---|
-| `Id` | Set by the database for create/update responses |
-| `ReviewerName` | Required, 1–100 characters |
-| `Comment` | Required, 1–2000 characters |
-| `Rating` | Integer range 1–5 |
-
 ## Entity model
 
-`MovieDbContext` exposes the following EF Core sets:
+`MovieDbContext` exposes these EF Core sets:
 
 - `Movies`
 - `MovieDetails`
@@ -433,59 +369,66 @@ Important relationships:
 - A movie has many genres.
 - `MovieActor` is an explicit join entity.
 - `MovieActor` uses the composite key `(MovieId, ActorId)` and stores a `Role`.
-- Actor/movie associations are unique by the composite key.
-- EF Fluent configurations are discovered with `ApplyConfigurationsFromAssembly`.
+- Fluent configurations are discovered with `ApplyConfigurationsFromAssembly`.
 
-## Mappings
+## Architecture
 
-DTO and entity conversions are implemented through extension methods in `DTOs/Mappings`:
+The project separates responsibilities through:
 
-- `ActorMappings`
-- `MovieActorMappings`
-- `MovieDetailsMappings`
-- `MovieMappings`
-- `ReviewMappings`
-
-This keeps controller payload creation and entity conversion separate from EF entities and database logic.
+- **Controllers** — HTTP endpoints and status-code responses
+- **DTOs** — request/response records and validation
+- **Mappings** — entity/DTO conversion extensions
+- **Repositories** — entity-specific database operations
+- **IUnitOfWork** — grouped repository access and `SaveChangesAsync` coordination
+- **Data/Configurations** — EF Core Fluent API mappings
+- **Infrastructure/GlobalExceptionHandler** — centralized exception-to-Problem Details handling
+- **Extensions** — SQL Server registration, migrations, and seed data
 
 ## Database startup and seed data
 
 `SeedData()` is called immediately after the application is built. It:
 
 1. Applies pending migrations.
-2. If the `Movies` table already contains data, leaves existing data unchanged.
-3. If empty, seeds genres, directors, countries, actors, movies, movie details, roles, and reviews.
+2. Leaves existing data unchanged if the `Movies` table contains records.
+3. Seeds genres, directors, countries, actors, movies, movie details, roles, and reviews when the database is empty.
 
-Seeded movie titles include:
+## Global exception handling
 
-- The Shawshank Redemption
-- The Matrix
-- The Dark Knight
+`GlobalExceptionHandler` implements `IExceptionHandler` and maps exceptions to RFC 7807 Problem Details responses:
 
-Seed helpers reuse named directors and countries or add them if absent.
+| Exception | Status |
+|---|---|
+| `ArgumentException` or `BadHttpRequestException` | `400 Bad Request` |
+| `KeyNotFoundException` | `404 Not Found` |
+| `UnauthorizedAccessException` | `401 Unauthorized` |
+| Any other exception | `500 Internal Server Error` |
+
+Unexpected `500` responses hide the underlying exception message. The exception is logged by the handler.
 
 ## Read-query techniques
 
-The implementation uses several EF Core techniques:
+The implementation uses:
 
-- `AsNoTracking()` for read-only list/detail queries.
-- `Include` and `ThenInclude` for eager loading navigation properties.
-- `AsSplitQuery()` for movie detail graphs to avoid join fan-out.
-- projection-based detail queries through `SelectDetailDto()`.
-- server-side filtering for genre, year, and actor names.
-- `Any`, `Contains`, `GroupBy`, `Join`, `SelectMany`, `Max`, `Average`, and `Count` for reports.
-- duplicate-safe relationship updates using distinct IDs.
+- `AsNoTracking()` for read-only list/detail queries
+- `Include` and `ThenInclude` for eager loading navigation properties
+- `AsSplitQuery()` for movie detail graphs
+- Projection-based detail queries
+- Server-side filtering for genre, year, and actor names
+- `Any`, `Contains`, `GroupBy`, `Join`, `SelectMany`, `Max`, `Average`, and `Count` for reports
+- Duplicate-safe relationship updates using distinct IDs
 
 ## HTTP status behavior
 
 | Status | Meaning |
 |---|---|
 | `200 OK` | Resource or collection returned |
-| `201 Created` | Resource created; usually includes a `Location` value |
+| `201 Created` | Resource created |
 | `204 No Content` | Update or delete succeeded |
-| `400 Bad Request` | DTO validation or invalid existing relationship ID |
+| `400 Bad Request` | DTO validation or invalid relationship ID |
+| `401 Unauthorized` | Unauthorized exception |
 | `404 Not Found` | Referenced resource does not exist |
 | `409 Conflict` | Actor is already associated with the movie |
+| `500 Internal Server Error` | Unexpected unhandled exception |
 
 ## API documentation
 
@@ -501,19 +444,26 @@ The exact Scalar route depends on its configured defaults, usually the developme
 ```text
 MovieApi/
 ├── Controllers/       API endpoints
-├── DTOs/              Entity-specific request and response records
-│   ├── Actors/        Actor DTOs
+├── DTOs/
+│   ├── Actors/        Actor request and response records
 │   ├── Mappings/      Entity/DTO mapping extensions
 │   ├── MovieActors/   Movie-actor association DTOs
-│   ├── MovieDetails/  Movie-details DTOs
-│   ├── Movies/        Movie DTOs
-│   ├── Reports/       Report response models
-│   └── Reviews/       Review DTOs
-├── Data/              DbContext and Fluent EF configurations
-├── Extensions/        Migration and seed startup helpers
+│   ├── MovieDetails/  Movie-details responses
+│   ├── Movies/        Movie request and response records
+│   ├── Reports/       Report response records
+│   └── Reviews/       Review request and response records
+├── Data/
+│   ├── Configurations/ EF Core Fluent API configurations
+│   ├── IUnitOfWork.cs
+│   ├── MovieDbContext.cs
+│   └── UnitOfWork.cs
+├── Extensions/        Persistence, migration, and seed helpers
+├── Infrastructure/    Global exception handling
 ├── Migrations/        EF Core migration history
 ├── Models/            Database entities
-├── Repositories/      Entity-specific repositories and unit of work
+├── Repositories/
+│   ├── Interfaces/    Repository contracts
+│   └── ...            Entity repositories and report repository
 ├── Properties/        Launch settings
 ├── appsettings.json   SQL Server and logging configuration
 └── Program.cs         Dependency injection and middleware setup
@@ -522,6 +472,7 @@ MovieApi/
 ## Notes
 
 - Authentication/authorization middleware is registered, but there are currently no protected endpoints or authorization policies.
-- Controllers use a dependency-injected `IUnitOfWork` with entity-specific repositories; there is no generic repository.
+- Controllers use a dependency-injected `IUnitOfWork` with entity-specific repositories.
 - HTTPS redirection is enabled in the application pipeline.
-- The startup seed helper uses `MovieDbContext` directly for migrations and initial data.
+- The global exception handler is registered before the application pipeline runs.
+- The startup seed helper applies migrations and initializes data when appropriate.
